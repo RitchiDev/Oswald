@@ -61,13 +61,18 @@ public class EnemyHealth : MonoBehaviour
         //UpdateHearts(m_Health);
     }
 
-    public void ChangeVitality(float amount, bool forcedDamage = false)
+    public void ChangeVitality(float amount, Transform origin = null, float force = 0,  bool forcedDamage = false)
     {
         if (amount < 0)
         {
             if (m_IsInvincible && !forcedDamage)
             {
                 return;
+            }
+
+            if(origin)
+            {
+                TakeKnockback(origin, force);
             }
 
             StartCoroutine(HitIndicator());
@@ -83,6 +88,13 @@ public class EnemyHealth : MonoBehaviour
         }
 
         Die();
+    }
+
+    public void TakeKnockback(Transform origin, float force)
+    {
+        Vector3 knockbackDirection = (m_Rigidbody.position - origin.position).normalized;
+        knockbackDirection.y = 0;
+        m_Rigidbody.AddForce(knockbackDirection * force, ForceMode.Impulse);
     }
 
     private void UpdateHearts(float health)
@@ -125,23 +137,20 @@ public class EnemyHealth : MonoBehaviour
         ShieldArea blocked = other.GetComponent<ShieldArea>();
         if (blocked)
         {
-            Vector3 knockbackDirection = (m_Rigidbody.position - blocked.Origin.position).normalized;
-            knockbackDirection.y = 0;
-            m_Rigidbody.AddForce(knockbackDirection * blocked.Knockback, ForceMode.Impulse);
-
+            TakeKnockback(blocked.Origin, blocked.Knockback);
             return;
         }
 
-        AttackArea attacked = other.GetComponentInParent<AttackArea>();
-        if (attacked)
-        {
-            Vector3 knockbackDirection = (m_Rigidbody.position - attacked.Origin.position).normalized;
-            knockbackDirection.y = 0;
-            m_Rigidbody.AddForce(knockbackDirection * attacked.Knockback, ForceMode.Impulse);
+        //AttackArea attacked = other.GetComponentInParent<AttackArea>();
+        //if (attacked)
+        //{
+        //    Vector3 knockbackDirection = (m_Rigidbody.position - attacked.Origin.position).normalized;
+        //    knockbackDirection.y = 0;
+        //    m_Rigidbody.AddForce(knockbackDirection * attacked.Knockback, ForceMode.Impulse);
 
-            ChangeVitality(-1f);
+        //    ChangeVitality(-1f);
 
-            return;
-        }
+        //    return;
+        //}
     }
 }
